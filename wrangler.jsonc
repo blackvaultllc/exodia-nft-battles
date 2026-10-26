@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "xovia-battle-generations",
+  "compatibility_date": "2026-04-28",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/server.ts",
+  // @cloudflare/vite-plugin emits the built worker + static assets under
+  // dist/tanstack_start_app and points this config at them at deploy time.
+  "assets": {
+    "directory": "./dist/xovia_battle_generations/client",
+    "binding": "ASSETS",
+  },
+  "observability": {
+    "enabled": true,
+  },
+}
