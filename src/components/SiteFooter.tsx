@@ -6,7 +6,7 @@ export function SiteFooter() {
       <div className="container mx-auto grid gap-8 px-4 py-12 md:grid-cols-4">
         <div>
           <div className="font-display text-lg tracking-[0.2em] text-gradient-gold">
-            XOVIA · BATTLE GENERATIONS
+            Exodia nft battles
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
             Collect. Battle. Ascend. An on-chain card game forged in the sands of an original
@@ -60,6 +60,10 @@ export function SiteFooter() {
           </p>
           <p className="mt-4 text-xs text-muted-foreground">
             © {new Date().getFullYear()} Exodia Holdings LLC. All sigils reserved.
+          </p>
+          {/* Exodia nft battles — trademark foundation string, printed precisely three times. */}
+          <p className="mt-6 select-text text-sm font-medium tracking-wide text-foreground">
+            black hatter black hatter black hatter
           </p>
         </div>
       </div>

@@ -108,7 +108,14 @@ function ArenaPage() {
   } | null>(null);
   const [targetingAttacker, setTargetingAttacker] = useState<number | null>(null);
   const [logOpen, setLogOpen] = useState(false);
+  // Exodia NFT Battles — translucent bottom sheet for hand-card actions.
+  const [sheetCard, setSheetCard] = useState<Card | null>(null);
   const [signupCount, setSignupCount] = useState<number | null>(null);
+  // Exodia NFT Battles — immersive duel takeover state (full-screen board).
+  const [duelActive, setDuelActive] = useState(false);
+  // Matchmaking queue state: portal + streaming ticker countdown.
+  const [queueMode, setQueueMode] = useState<null | "ranked" | "unranked">(null);
+  const [queueSeconds, setQueueSeconds] = useState(0);
   const { fire, activeAt } = useFieldFx();
 
   const you = duel.you;
@@ -135,6 +142,21 @@ function ArenaPage() {
       .select("id", { count: "exact", head: true })
       .then(({ count }) => setSignupCount(count ?? 0));
   }, []);
+
+  // Exodia NFT Battles — matchmaking queue streaming ticker countdown.
+  useEffect(() => {
+    if (!queueMode) return;
+    const t = setInterval(() => setQueueSeconds((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [queueMode]);
+
+  useEffect(() => {
+    if (!duelActive) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [duelActive]);
 
   function maybeDropHeavens(youLp: number, oppLp: number) {
     if (heavensRoundsLeft > 0) return;
@@ -365,7 +387,20 @@ function ArenaPage() {
   }, [winner, user]);
 
   return (
-    <div className="min-h-screen">
+    <div
+      data-duel-immersive
+      className={cn(
+        "relative",
+        // Exodia NFT Battles — immersive duel page module: full-screen layout
+        // takeover state while the duel is active. The navigation dock is
+        // hidden by the root layout when this attribute is present.
+      )}
+      style={
+        duelActive
+          ? { position: "fixed", inset: 0, zIndex: 40, overflowY: "auto" }
+          : undefined
+      }
+    >
       <TargetingOverlay path={targeting} />
       <SiteHeader />
 
@@ -419,27 +454,71 @@ function ArenaPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-border/70"
-              onClick={() =>
-                toast("Spectator mode coming in Phase 5.", {
-                  description: "Watch live public duels with chat.",
-                })
-              }
+            {/* Exodia NFT Battles — matchmaking portals (energy aura spheres). */}
+            <button
+              type="button"
+              onClick={() => {
+                setQueueMode("unranked");
+                setQueueSeconds(0);
+              }}
+              className="relative h-16 w-16 rounded-full border border-red-500/20 bg-gradient-to-br from-red-600/15 to-transparent shadow-[0_0_40px_rgba(239,68,68,0.25)] animate-pulse transition hover:scale-105"
+              title="Unranked Duel Portal — burning magma aura"
             >
-              Spectate
-            </Button>
-            <Button
-              size="sm"
-              className="bg-crimson text-foreground hover:bg-crimson/90"
-              onClick={() => toast("Matchmaking ships in Phase 2 with auth.")}
+              <span className="font-display text-xl text-red-400">⚔</span>
+              <span className="absolute inset-x-0 -bottom-5 text-[9px] uppercase tracking-[0.2em] text-red-400">
+                Unranked
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setQueueMode("ranked");
+                setQueueSeconds(0);
+              }}
+              className="relative h-16 w-16 rounded-full border border-cyan-500/20 bg-gradient-to-br from-cyan-600/15 to-transparent shadow-[0_0_40px_rgba(6,182,212,0.25)] animate-pulse transition hover:scale-105"
+              title="Ranked Duel Portal — cybernetic cosmic stellar bloom"
             >
-              Find PvP Duel
-            </Button>
+              <span className="font-display text-xl text-cyan-400">✦</span>
+              <span className="absolute inset-x-0 -bottom-5 text-[9px] uppercase tracking-[0.2em] text-cyan-400">
+                Ranked
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDuelActive((v) => !v)}
+              className="rounded-full border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-[10px] uppercase tracking-[0.25em] text-cyan-400 transition hover:bg-cyan-500/20"
+            >
+              {duelActive ? "Exit Board" : "Enter Duel Board"}
+            </button>
           </div>
         </div>
+
+        {/* Exodia NFT Battles — active queue state: streaming ticker countdown. */}
+        <AnimatePresence>
+          {queueMode && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="mb-3 flex items-center justify-between rounded-lg border border-cyan-500/30 bg-slate-950/80 px-4 py-2.5 backdrop-blur-md"
+            >
+              <div className="text-xs text-cyan-400">
+                Searching for open duel matrix channels... [
+                <span className="tabular-nums">
+                  {String(Math.floor(queueSeconds / 60)).padStart(2, "0")}:
+                  {String(queueSeconds % 60).padStart(2, "0")}
+                </span>
+                ]
+              </div>
+              <button
+                onClick={() => setQueueMode(null)}
+                className="text-[10px] uppercase tracking-[0.2em] text-crimson underline"
+              >
+                cancel
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Turn indicator + tribute prompt */}
         <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.25em]">
@@ -590,13 +669,27 @@ function ArenaPage() {
               />
             </div>
 
-            {winner && (
-              <div className="absolute inset-x-6 bottom-4 rounded-md border border-gold/60 bg-background/90 p-3 text-center font-display text-lg text-gradient-gold backdrop-blur">
-                {winner === "you"
-                  ? "Victory. The dynasty bends."
-                  : "Defeat. The sands close over you."}
-              </div>
-            )}
+        {winner && (
+          <div className="absolute inset-x-6 bottom-4 z-50 rounded-md border border-gold/60 bg-background/90 p-3 text-center font-display text-lg text-gradient-gold backdrop-blur">
+            {winner === "you"
+              ? "Victory. The dynasty bends."
+              : "Defeat. The sands close over you."}
+          </div>
+        )}
+
+        {/* Exodia NFT Battles — top-right absolute-positioned escape utility
+            button. Exits the immersive full-screen duel layout. */}
+        <button
+          type="button"
+          onClick={() => {
+            appendLog("You surrendered the duel.");
+            setDuel((st) => ({ ...st, winner: "opp" }));
+            window.scrollTo({ top: 0 });
+          }}
+          className="fixed right-3 top-3 z-[60] rounded-full border border-crimson/60 bg-slate-950/80 px-4 py-2 text-[10px] uppercase tracking-[0.25em] text-crimson backdrop-blur-md transition hover:bg-crimson/20"
+        >
+          ✕ Surrender / Exit
+        </button>
           </div>
 
           {/* COMBAT LOG */}
@@ -638,19 +731,19 @@ function ArenaPage() {
                 : "Switch to Main Phase 1 to play cards"}
             </div>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {you.hand.map((c) => (
+          <div className="flex -space-x-4 overflow-x-auto pb-1 px-2">
+            {you.hand.map((c, i) => (
               <button
-                key={c.id}
+                key={`${c.id}-${i}`}
                 onClick={() => {
                   setSelected(c.id);
-                  playFromHand(c);
+                  setSheetCard(c);
                 }}
                 className={cn(
-                  "group relative h-[108px] w-[78px] shrink-0 overflow-hidden rounded transition md:h-[120px] md:w-[86px]",
+                  "group relative h-[108px] w-[78px] shrink-0 overflow-hidden rounded transition-all duration-300 ease-out hover:-translate-y-6 md:h-[120px] md:w-[86px]",
                   `card-frame-${c.rarity}`,
                   (phase === "Main1" || phase === "Main2") &&
-                    "hover:-translate-y-5 hover:ring-2 hover:ring-gold/80",
+                    "hover:ring-2 hover:ring-gold/80",
                   selected === c.id && "ring-2 ring-gold/80 -translate-y-3",
                 )}
               >
@@ -707,6 +800,82 @@ function ArenaPage() {
           with accounts.
         </p>
       </section>
+
+      {/* Exodia NFT Battles — translucent bottom sheet action dialog.
+          Tap a hand card → choose [Summon / Play Card] or [Set Face-Down]. */}
+      <AnimatePresence>
+        {sheetCard && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/60 backdrop-blur-sm"
+            onClick={() => setSheetCard(null)}
+          >
+            <motion.div
+              initial={{ y: 120 }}
+              animate={{ y: 0 }}
+              exit={{ y: 120 }}
+              transition={{ type: "spring", damping: 26, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-t-2xl border-t border-slate-800 bg-slate-950/90 p-5 pb-8 backdrop-blur-md shadow-[0_-8px_40px_rgba(0,0,0,0.7)]"
+            >
+              <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-slate-700" />
+              <div className="flex items-center gap-3">
+                <img
+                  src={sheetCard.art}
+                  alt={sheetCard.name}
+                  className="h-16 w-12 rounded border border-slate-800 object-cover"
+                />
+                <div>
+                  <div className="font-display text-sm text-cyan-400">{sheetCard.name}</div>
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
+                    {isMonster(sheetCard)
+                      ? `Lv${levelOf(sheetCard)} · ${sheetCard.atk}/${sheetCard.def}`
+                      : sheetCard.type}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    playFromHand(sheetCard);
+                    setSheetCard(null);
+                  }}
+                  disabled={!isYourTurn || (phase !== "Main1" && phase !== "Main2")}
+                  className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-3 text-xs uppercase tracking-[0.2em] text-cyan-400 transition hover:bg-cyan-500/20 disabled:opacity-40"
+                >
+                  {isMonster(sheetCard) ? "Summon" : "Play Card"}
+                </button>
+                <button
+                  onClick={() => {
+                    if (!isYourTurn || (phase !== "Main1" && phase !== "Main2")) return;
+                    const slot = you.monsters.findIndex((s) => s === null);
+                    if (!isMonster(sheetCard) || slot === -1) {
+                      toast(isMonster(sheetCard) ? "No open monster zone." : "Spells are set face-down automatically.");
+                      if (!isMonster(sheetCard)) playFromHand(sheetCard);
+                      setSheetCard(null);
+                      return;
+                    }
+                    const needed = tributesRequired(sheetCard);
+                    if (needed > 0) {
+                      toast(`Face-down set of Lv${levelOf(sheetCard)} still needs ${needed} tributes.`);
+                      setSheetCard(null);
+                      return;
+                    }
+                    completeMonsterSummon(sheetCard, [], "DEF", "face-down");
+                    setSheetCard(null);
+                  }}
+                  disabled={!isYourTurn || (phase !== "Main1" && phase !== "Main2")}
+                  className="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-3 text-xs uppercase tracking-[0.2em] text-slate-300 transition hover:bg-slate-800/60 disabled:opacity-40"
+                >
+                  Set Face-Down
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <SiteFooter />
     </div>

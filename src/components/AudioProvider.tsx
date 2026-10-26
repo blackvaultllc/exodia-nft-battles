@@ -9,8 +9,9 @@ import {
   type ReactNode,
 } from "react";
 
-// Royalty-free Egyptian / Middle-Eastern ambient tracks (Pixabay CDN, free for commercial use).
-// Multiple tracks so users can change the vibe; first one is the default.
+// Exodia NFT Battles — bundled background music. The four track slots below
+// map to local mp3 files served from /public/music/. Drop the mp3 files into
+// public/music/ using these exact filenames — the names are not to be changed.
 export interface TrackOption {
   id: string;
   label: string;
@@ -20,22 +21,22 @@ export const MUSIC_TRACKS: TrackOption[] = [
   {
     id: "pharaoh",
     label: "Pharaoh's Court",
-    url: "https://cdn.pixabay.com/download/audio/2022/10/18/audio_31c2730e64.mp3?filename=arabian-nightfall-122363.mp3",
+    url: "/music/arabian-nightfall-122363.mp3",
   },
   {
     id: "desert",
     label: "Desert Mirage",
-    url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b1f3f5f4f.mp3?filename=middle-eastern-118280.mp3",
+    url: "/music/middle-eastern-118280.mp3",
   },
   {
     id: "nile",
     label: "Nile at Dusk",
-    url: "https://cdn.pixabay.com/download/audio/2023/06/06/audio_5c8df9a99c.mp3?filename=arabian-mystery-152199.mp3",
+    url: "/music/arabian-mystery-152199.mp3",
   },
   {
     id: "temple",
     label: "Temple of Anubis",
-    url: "https://cdn.pixabay.com/download/audio/2024/02/19/audio_3a2c2b9c8a.mp3?filename=egyptian-mystery-192478.mp3",
+    url: "/music/egyptian-mystery-192478.mp3",
   },
 ];
 

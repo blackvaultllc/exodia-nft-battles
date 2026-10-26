@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -14,6 +15,7 @@ import { useSuspicionTracker } from "@/hooks/useSuspicionTracker";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ConsentGate } from "@/components/ConsentGate";
 import { SupportChat } from "@/components/SupportChat";
+import { BottomDock } from "@/components/BottomDock";
 
 function NotFoundComponent() {
   return (
@@ -77,27 +79,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "XOVIA Battle Generations — Collect. Battle. Ascend." },
+      { title: "Exodia nft battles — E X O D I A | Collect. Battle. Ascend." },
       {
         name: "description",
         content:
-          "XOVIA Battle Generations — an on-chain Egyptian mythology card game and NFT marketplace by Exodia Holdings LLC. Collect Gods, summon the five relics, and battle for divinity.",
+          "Exodia nft battles (E X O D I A) — an on-chain Egyptian mythology card game and NFT marketplace by Exodia Holdings LLC. Collect Gods, summon the five relics, and battle for divinity.",
       },
       { name: "author", content: "Exodia Holdings LLC" },
-      { property: "og:title", content: "XOVIA Battle Generations — Collect. Battle. Ascend." },
+      { property: "og:title", content: "Exodia nft battles — E X O D I A | Collect. Battle. Ascend." },
       {
         property: "og:description",
         content:
-          "XOVIA Battle Generations — an on-chain Egyptian mythology card game and NFT marketplace by Exodia Holdings LLC.",
+          "Exodia nft battles — an on-chain Egyptian mythology card game and NFT marketplace by Exodia Holdings LLC.",
       },
-      { property: "og:site_name", content: "XOVIA Battle Generations" },
+      { property: "og:site_name", content: "Exodia nft battles" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "XOVIA Battle Generations — Collect. Battle. Ascend." },
+      { name: "twitter:title", content: "Exodia nft battles — E X O D I A | Collect. Battle. Ascend." },
       {
         name: "twitter:description",
         content:
-          "XOVIA Battle Generations — an on-chain Egyptian mythology card game and NFT marketplace by Exodia Holdings LLC.",
+          "Exodia nft battles — an on-chain Egyptian mythology card game and NFT marketplace by Exodia Holdings LLC.",
       },
       {
         property: "og:image",
@@ -149,14 +151,21 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useSuspicionTracker();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Exodia NFT Battles — the immersive duel page module takes over the full
+  // screen, so the global navigation dock is hidden during active duels.
+  const duelImmersive = pathname === "/arena/board";
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ConsentGate>
-          <Outlet />
+          <div className="min-h-screen bg-slate-950 pb-20">
+            <Outlet />
+          </div>
         </ConsentGate>
         <SupportChat />
+        <BottomDock hidden={duelImmersive} />
         <Toaster position="bottom-right" />
       </AuthProvider>
     </QueryClientProvider>

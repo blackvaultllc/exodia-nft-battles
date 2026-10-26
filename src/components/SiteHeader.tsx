@@ -133,10 +133,10 @@ export function SiteHeader() {
             />
             <div className="flex flex-col leading-none">
               <span className="font-display text-base tracking-[0.18em] text-gradient-gold">
-                XOVIA
+                Exodia nft battles
               </span>
               <span className="hidden text-[10px] tracking-[0.3em] text-muted-foreground sm:inline">
-                BATTLE GENERATIONS
+                XOVIA · BATTLE GENERATIONS
               </span>
             </div>
           </Link>
